@@ -1,0 +1,59 @@
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: busops-clickhouse
+    restart: unless-stopped
+    environment:
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    ports:
+      - "127.0.0.1:8123:8123"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - clickhouse_logs:/var/log/clickhouse-server
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+
+  metabase-db:
+    image: postgres:16
+    container_name: busops-metabase-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${METABASE_DB_USER}
+      POSTGRES_PASSWORD: ${METABASE_DB_PASSWORD}
+      POSTGRES_DB: ${METABASE_DB_NAME}
+    volumes:
+      - metabase_db_data:/var/lib/postgresql/data
+
+  metabase:
+    image: metabase/metabase:latest
+    container_name: busops-metabase
+    restart: unless-stopped
+    depends_on:
+      - metabase-db
+    ports:
+      - "3001:3000"
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: ${METABASE_DB_NAME}
+      MB_DB_PORT: 5432
+      MB_DB_USER: ${METABASE_DB_USER}
+      MB_DB_PASS: ${METABASE_DB_PASSWORD}
+      MB_DB_HOST: metabase-db
+      JAVA_TIMEZONE: Africa/Kampala
+    volumes:
+      - metabase_plugins:/plugins
+
+volumes:
+  clickhouse_data:
+  clickhouse_logs:
+  metabase_db_data:
+  metabase_plugins:
+
+networks:
+  default:
+    name: busops-net
+    external: true
