@@ -35,7 +35,7 @@ services:
     depends_on:
       - metabase-db
     ports:
-      - "127.0.0.1:3001:3000"
+      - "3001:3000"
     environment:
       MB_SITE_URL: "https://metabase.kiiramotors.com"
       MB_REDIRECT_ALL_REQUESTS_TO_HTTPS: "true"
@@ -50,17 +50,18 @@ services:
     volumes:
       - metabase_plugins:/plugins
     networks:
-      - default
-      - busops-net
-      - shared_app-network
+      -busops-net
+      -shared_app-network
     labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=shared_app-network"
-      - "traefik.http.routers.metabase.rule=Host(`metabase.kiiramotors.com`)"
-      - "traefik.http.routers.metabase.entrypoints=websecure"
-      - "traefik.http.routers.metabase.tls=true"
-      - "traefik.http.services.metabase.loadbalancer.server.port=3000"
-      - "traefik.http.routers.metabase.tls.certresolver=myresolver"
+       - "traefik.enable=true"
+       - "traefik.docker.network=shared_app-network"
+
+       - "traefik.http.routers.metabase.rule=Host(`metabase.kiiramotors.com`)"
+       - "traefik.http.routers.metabase.entrypoints=websecure"
+       - "traefik.http.routers.metabase.tls.certresolver=myresolver"
+       - "traefik.http.routers.metabase.service=metabase-svc"
+
+       - "traefik.http.services.metabase-svc.loadbalancer.server.port=3000"
 
 volumes:
   clickhouse_data:
